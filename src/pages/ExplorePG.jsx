@@ -9,7 +9,7 @@ const ExplorePG = () => {
   const [sortOption, setSortOption] = useState("");
 
   useEffect(() => {
-    axios.get("https://backend-resideease.onrender.com/accommodations/pgs")
+    axios.get(`${import.meta.env.VITE_API_URL}/accommodations/pgs`)
       .then((response) => setPgs(response.data))
       .catch((error) => console.error("Error fetching PGs:", error));
   }, []);

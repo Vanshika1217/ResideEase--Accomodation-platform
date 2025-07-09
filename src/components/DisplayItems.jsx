@@ -11,7 +11,7 @@ const DisplayItems = (props) => {
         headers:{"Content-Type": "application/json"},
         body:{"id":id}
       }
-      const response=await fetch(`https://backend-resideease.onrender.com/remove`)
+      const response=await fetch(`${import.meta.env.VITE_API_URL}/remove`)
       const data=await response.json()
       console.log(data)
     }

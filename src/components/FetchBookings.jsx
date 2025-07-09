@@ -26,7 +26,7 @@ const FetchBookings = () => {
       if (!userId) return;
   
       try {
-        const res = await axios.get(`https://backend-resideease.onrender.com/booking/user/${userId}`);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/booking/user/${userId}`);
         setBookings(res.data);
       } catch (err) {
         console.error("Error fetching bookings:", err.response?.data || err.message);

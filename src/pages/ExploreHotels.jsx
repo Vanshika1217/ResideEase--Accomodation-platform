@@ -9,7 +9,7 @@ const ExploreHotels = () => {
   const [sortOption, setSortOption] = useState(""); // Sorting state
 
   useEffect(() => {
-    axios.get("https://backend-resideease.onrender.com/accommodations/hotels")
+    axios.get(`${import.meta.env.VITE_API_URL}/accommodations/hotels`)
       .then((response) => setHotels(response.data))
       .catch((error) => console.error("Error fetching hotels:", error));
   }, []);

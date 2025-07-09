@@ -13,7 +13,7 @@ const Fetch = (props) => {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       };
-      const response = await fetch(`https://backend-resideease.onrender.com/fetch/${param}`, requestOptions);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}fetch/${param}`, requestOptions);
       const data = await response.json();
       setItems(data);
       console.log(data);

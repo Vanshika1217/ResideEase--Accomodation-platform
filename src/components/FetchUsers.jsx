@@ -9,7 +9,7 @@ const FetchUsers = () => {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       };
-      const response = await fetch(`https://backend-resideease.onrender.com/user/fetch`, requestOptions);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/fetch`, requestOptions);
       const data = await response.json();
       setUsers(data);
       console.log(data);

@@ -23,7 +23,7 @@ const AddUser = () => {
         let obj={
             email:formData.email
            }
-    const response = await fetch("https://backend-resideease.onrender.com/user/remove", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/user/remove`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(obj)

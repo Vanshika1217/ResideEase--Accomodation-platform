@@ -10,7 +10,7 @@ const CancelBookings = () => {
 
   const fetchBookings = async () => {
     try {
-      const response = await fetch('https://backend-resideease.onrender.com/booking/fetchById', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/booking/fetchById`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ const CancelBookings = () => {
 
   const cancelBooking = async (_id) => {
     try {
-      const response = await fetch(`https://backend-resideease.onrender.com/booking/cancel`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/booking/cancel`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
