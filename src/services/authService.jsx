@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/auth`;
+const API_URL = "http://localhost:5000/auth";
 
 // User Login
 export const loginUser = async (email, password) => {
@@ -20,7 +20,7 @@ export const loginUser = async (email, password) => {
 export const registerUser = async (name, email, password) => {
   try {
     const response = await axios.post(
-      `${import.meta.env.VITE_API_URL}/auth/register`,
+      `https://backend-resideease.onrender.com/auth/register`,
       { name, email, password },
       { withCredentials: true }
     );

@@ -15,7 +15,7 @@ const RemoveItems = (props) => {
         headers:{"Content-Type": "application/json"},
         body:JSON.stringify(json_id)
       }
-      const response=await fetch(`${import.meta.env.VITE_API_URL}/remove/items`,requestOptions)
+      const response=await fetch(`https://backend-resideease.onrender.com/remove/items`,requestOptions)
       const data=await response.json()
       console.log(data)
       navigate('/admin')

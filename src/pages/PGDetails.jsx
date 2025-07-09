@@ -30,7 +30,7 @@ export default function PGDetailPage() {
   const [userAddress, setUserAddress] = useState("");
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/accommodations/pgs/${pgId}`)
+    axios.get(`https://backend-resideease.onrender.com/accommodations/pgs/${pgId}`)
       .then(response => setPgs(response.data))
       .catch(error => console.error("Error fetching pgs details:", error));
   }, [pgId]);

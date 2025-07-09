@@ -55,7 +55,7 @@ const BookNow = () => {
         },
       };
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/booking/add`, {
+      const response = await fetch(`https://backend-resideease.onrender.com/booking/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bookingData),

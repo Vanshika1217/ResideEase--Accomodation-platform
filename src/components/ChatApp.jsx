@@ -9,7 +9,7 @@ import SendIcon from '@mui/icons-material/Send';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import styled from '@emotion/styled';
 
-const socket = io(`${import.meta.env.VITE_API_URL}`);
+const socket = io(`https://backend-resideease.onrender.com/`);
 
 const ChatContainer = styled(Container)({
   height: '100vh',
@@ -82,7 +82,7 @@ function ChatApp() {
 
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/chat/messages`);
+        const res = await axios.get(`https://backend-resideease.onrender.com/chat/messages`);
         setMessages(res.data);
         setLoading(false);
       } catch (error) {

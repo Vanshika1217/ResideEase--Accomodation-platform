@@ -21,7 +21,7 @@ const Signup = () => {
     e.preventDefault();
     try {
       // Send the POST request to register the user
-      await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, formData, {
+      await axios.post(`https://backend-resideease.onrender.com/auth/register`, formData, {
         headers: { "Content-Type": "application/json" },
       });
 
