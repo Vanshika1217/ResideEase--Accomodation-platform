@@ -43,7 +43,7 @@ export default function HotelDetailPage() {
     });
   };
   useEffect(() => {
-    axios.get(`https://backend-resideease.onrender.com/accommodations/hotels/${hotelId}`)
+    axios.get(`https://backend-resideease.onrender.com/accommodations/hotel/${hotelId}`)
       .then(response => setHotel(response.data))
       .catch(error => console.error("Error fetching hotel details:", error));
   }, [hotelId]);

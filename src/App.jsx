@@ -61,7 +61,7 @@ function App() {
 <Route path='/chat' element ={<ChatApp/>}/>
 <Route path="/pg-booking-confirmed" element={<PGBookingConfirmed />} />
 <Route path="/pg-upi-payment" element={<PGUPIPayment />} />
-          
+     <Route path="/fetchBookings" element={<FetchBookings />} />      
         </Routes>
      </FetchProvider>
       </>
