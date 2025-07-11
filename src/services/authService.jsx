@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/auth";
+const API_URL = "https://backend-resideease.onrender.com/auth";
 
 // User Login
 export const loginUser = async (email, password) => {

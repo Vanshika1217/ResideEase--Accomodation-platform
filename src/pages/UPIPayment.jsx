@@ -2,23 +2,15 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import QRCode from "qrcode";
 import { FiCopy, FiCheck, FiExternalLink } from "react-icons/fi";
+import { useAuth } from "../context/AuthContext";
 
 export default function UPIPayment() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user: loggedInUser } = useAuth(); // ✅ logged-in user
 
-  // Defensive extraction from state
   const state = location.state || {};
-  const {
-    user,
-    amount,
-    formData,
-    bookingId,
-    hostId,
-    hostName,
-    userId,
-    userName,
-  } = state;
+  const { user, amount, formData, bookingId } = state;
 
   if (!user || !amount || !formData) {
     return (
@@ -34,11 +26,7 @@ export default function UPIPayment() {
   const currency = "INR";
 
   const upiUrl = useMemo(() => {
-    return `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
-      name
-    )}&mc=&tid=${txnId}&tr=${txnId}&tn=${encodeURIComponent(
-      note
-    )}&am=${amount}&cu=${currency}`;
+    return `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&mc=&tid=${txnId}&tr=${txnId}&tn=${encodeURIComponent(note)}&am=${amount}&cu=${currency}`;
   }, [upiId, name, txnId, amount]);
 
   const [isMobile, setIsMobile] = useState(false);
@@ -53,15 +41,16 @@ export default function UPIPayment() {
   }, [upiUrl]);
 
   const handlePaymentDone = () => {
+    const enrichedFormData = {
+      ...formData,
+      accommodationId: bookingId,
+      userId: loggedInUser?._id,
+    };
+
+    console.log("✅ Navigating to booking-confirmed with:", enrichedFormData);
+
     navigate("/booking-confirmed", {
-      state: {
-        formData,
-        bookingId,
-        hostId,
-        hostName,
-        userId,
-        userName,
-      },
+      state: { formData: enrichedFormData },
     });
   };
 
@@ -74,77 +63,58 @@ export default function UPIPayment() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-blue-600 p-6 text-white">
-          <h1 className="text-2xl font-bold text-center">UPI Payment</h1>
-          <p className="text-center opacity-90 mt-1">Scan or tap to pay</p>
+        <div className="bg-blue-600 p-6 text-white text-center">
+          <h1 className="text-2xl font-bold">UPI Payment</h1>
+          <p className="opacity-90 mt-1">Scan or tap to pay</p>
         </div>
 
-        {/* Amount Section */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="text-center">
-            <p className="text-gray-600">Amount to pay</p>
-            <p className="text-3xl font-bold mt-2">₹{amount}</p>
+        <div className="p-6 border-b border-gray-200 text-center">
+          <p className="text-gray-600">Amount to pay</p>
+          <p className="text-3xl font-bold mt-2">₹{amount}</p>
+        </div>
+
+        <div className="p-6 border-b border-gray-200 flex flex-col items-center">
+          {isMobile ? (
+            <button
+              onClick={() => (window.location.href = upiUrl)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg font-medium flex items-center gap-2"
+            >
+              <FiExternalLink />
+              Open UPI App
+            </button>
+          ) : (
+            qrImage && (
+              <>
+                <img src={qrImage} alt="QR Code" className="w-48 h-48 mb-2" />
+                <p className="text-sm text-gray-600">Scan QR with any UPI app</p>
+              </>
+            )
+          )}
+        </div>
+
+        <div className="p-6 border-b border-gray-200 text-center">
+          <p className="text-gray-600 mb-2">Pay to this UPI ID</p>
+          <div className="inline-flex items-center bg-gray-100 px-4 py-2 rounded-lg">
+            <span className="font-mono">{upiId}</span>
+            <button onClick={copyToClipboard} className="ml-3 text-blue-600">
+              {copied ? <FiCheck className="text-green-500" /> : <FiCopy />}
+            </button>
           </div>
         </div>
 
-        {/* QR Code or Mobile Link */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex flex-col items-center">
-            {isMobile ? (
-              <button
-                onClick={() => (window.location.href = upiUrl)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg font-medium flex items-center gap-2 transition-colors"
-              >
-                <FiExternalLink />
-                Open UPI App
-              </button>
-            ) : (
-              qrImage && (
-                <div className="flex flex-col items-center">
-                  <div className="p-4 bg-white rounded-lg border border-gray-200 mb-4">
-                    <img src={qrImage} alt="UPI QR Code" className="w-48 h-48" />
-                  </div>
-                  <p className="text-gray-600 text-sm mb-2">Scan QR code with any UPI app</p>
-                </div>
-              )
-            )}
-          </div>
-        </div>
-
-        {/* UPI ID Section */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex flex-col items-center">
-            <p className="text-gray-600 mb-2">Pay to this UPI ID</p>
-            <div className="flex items-center bg-gray-100 rounded-lg px-4 py-2">
-              <span className="font-mono font-medium">{upiId}</span>
-              <button
-                onClick={copyToClipboard}
-                className="ml-3 text-blue-600 hover:text-blue-800 transition-colors"
-                title="Copy UPI ID"
-              >
-                {copied ? <FiCheck className="text-green-500" /> : <FiCopy />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Confirmation */}
         <div className="p-6">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-yellow-800 text-sm text-center">
-              Please complete the payment and click "I've Paid" below to confirm your booking.
-            </p>
+          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-center text-yellow-800 text-sm">
+            Complete the payment and click "I've Paid" to confirm your booking.
           </div>
 
           <button
             onClick={handlePaymentDone}
-            className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-lg font-medium transition-colors"
+            className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-lg"
           >
             I've Paid
           </button>
 
-          <p className="mt-4 text-sm text-gray-600 text-center">
+          <p className="mt-4 text-center text-sm text-gray-600">
             Having trouble?{" "}
             <a href={upiUrl} className="text-blue-600 hover:underline">
               Try manual payment

@@ -8,7 +8,21 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
   const [messages, setMessages] = useState([]);
   const roomId = `${bookingId}`;
 
-  // 👉 Fetch previous messages
+  // ✅ Debugging logs
+  useEffect(() => {
+    console.log("📦 ChatComponent Props:", { bookingId, senderId, receiverId, senderName });
+  }, []);
+
+  // ✅ Prevent rendering if essential props are missing
+  if (!bookingId || !senderId || !receiverId) {
+    return (
+      <div className="text-red-600 font-semibold">
+        ⚠️ Chat cannot be loaded. Missing user or booking info.
+      </div>
+    );
+  }
+
+  // ✅ Fetch messages from backend
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -22,7 +36,7 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
     fetchMessages();
   }, [bookingId]);
 
-  // 👉 Join the room and listen to socket messages
+  // ✅ Handle real-time socket communication
   useEffect(() => {
     socket.emit('join_room', roomId);
 
@@ -37,9 +51,12 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
     };
   }, [roomId]);
 
-  // ✅ Send message function
+  // ✅ Send message handler
   const sendMessage = async () => {
-    if (!content.trim()) return;
+    if (!content.trim() || !senderId || !receiverId || !bookingId) {
+      console.warn("❌ Missing sender/receiver/booking ID or empty message.");
+      return;
+    }
 
     const msg = {
       bookingId,
@@ -48,6 +65,8 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
       senderName,
       content,
     };
+
+    console.log("📤 Sending message:", msg);
 
     try {
       const saved = await axios.post("https://backend-resideease.onrender.com/messages", msg);
@@ -63,7 +82,6 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
     <div>
       <h3 className="text-lg font-semibold mb-2 text-gray-800">Chat</h3>
 
-      {/* Chat messages */}
       <div className="bg-gray-100 rounded-lg p-3 mb-2 max-h-64 overflow-y-auto">
         {messages.length === 0 ? (
           <p className="text-gray-500">No messages yet.</p>
@@ -79,7 +97,6 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
         )}
       </div>
 
-      {/* Message input */}
       <div className="flex gap-2">
         <input
           type="text"

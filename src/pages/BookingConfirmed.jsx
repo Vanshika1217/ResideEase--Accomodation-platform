@@ -1,13 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import BookingReceipt from "./BookingReceipt";
 import Navbar from "../components/Navbar";
-import ChatComponent from "../components/ChatComponent"; // ✅ path to ChatComponent
+import ChatComponent from "../components/ChatComponent";
+import { useAuth } from "../context/AuthContext";
 
 const BookingConfirmed = () => {
   const location = useLocation();
-  const formData = location.state;
+  const { formData } = location.state || {};
+  const { user } = useAuth();
+  const [showChat, setShowChat] = useState(false); // 🆕 State to toggle chat
 
   if (!formData) {
     return (
@@ -24,8 +27,7 @@ const BookingConfirmed = () => {
   }
 
   const {
-    _id: bookingId,
-    userId,
+    accommodationId,
     contactInfo,
     checkInDate,
     checkOutDate,
@@ -38,6 +40,7 @@ const BookingConfirmed = () => {
   } = formData;
 
   const totalAmount = totalPrice || basePrice + tax;
+  const senderId = user?._id || "guest";
 
   return (
     <>
@@ -76,7 +79,6 @@ const BookingConfirmed = () => {
           </div>
         </div>
 
-        {/* 🧾 PDF + 💬 Chat Side by Side */}
         <div className="mt-6 flex flex-col md:flex-row gap-6 w-full max-w-5xl">
           <PDFDownloadLink
             document={<BookingReceipt formData={formData} />}
@@ -95,15 +97,31 @@ const BookingConfirmed = () => {
             }
           </PDFDownloadLink>
 
-          {/* 💬 Chat Component */}
-          <div className="flex-1 bg-white p-4 shadow-lg rounded-lg">
-            <ChatComponent
-              bookingId={bookingId}
-              senderId={userId}
-              receiverId="admin" // hardcoded for admin
-              senderName={contactInfo?.name || "Guest"}
-            />
-          </div>
+          {/* Chat Section */}
+          {!showChat && (
+            <div className="flex-1 text-center">
+              <button
+                onClick={() => setShowChat(true)}
+                className="bg-green-600 text-white py-3 px-8 rounded-full text-lg shadow-md hover:bg-green-700 transition duration-300"
+              >
+                💬 Chat with Host
+              </button>
+            </div>
+          )}
+
+          {showChat && (
+            <div className="flex-1 bg-white p-4 shadow-lg rounded-lg">
+              <h3 className="text-xl font-bold text-blue-700 mb-3">
+                Chat with Host
+              </h3>
+              <ChatComponent
+                bookingId={accommodationId}
+                senderId={senderId}
+                receiverId="admin"
+                senderName={contactInfo?.name || "Guest"}
+              />
+            </div>
+          )}
         </div>
       </div>
     </>
