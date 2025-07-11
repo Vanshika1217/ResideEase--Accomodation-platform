@@ -11,19 +11,17 @@ const BookingConfirmed = () => {
   const location = useLocation();
   const { user } = useAuth();
   const [showChat, setShowChat] = useState(false);
-  const [formData, setFormData] = useState(null);
 
-  // Load formData from location.state or localStorage
+  const [formData, setFormData] = useState(() => {
+    const stored = localStorage.getItem("bookingData");
+    return stored ? JSON.parse(stored) : null;
+  });
+
   useEffect(() => {
-    const stateData = location.state?.formData;
+    const stateData = location.state?.formData || location.state;
     if (stateData) {
       setFormData(stateData);
       localStorage.setItem("bookingData", JSON.stringify(stateData));
-    } else {
-      const storedData = localStorage.getItem("bookingData");
-      if (storedData) {
-        setFormData(JSON.parse(storedData));
-      }
     }
   }, [location.state]);
 
@@ -42,20 +40,30 @@ const BookingConfirmed = () => {
   }
 
   const {
-    accommodationId,
-    contactInfo,
-    checkInDate,
-    checkOutDate,
-    numberOfGuests,
-    roomType,
-    totalPrice,
-    placeName,
-    basePrice = 23500,
-    tax = 4230,
+    FirstName,
+    LastName,
+    EmailId,
+    PhoneNumber,
+    destination,
+    checkIn,
+    checkOut,
+    guests,
+    rooms,
+    basePrice: rawBasePrice = 23500,
+    tax: rawTax = 4230,
   } = formData;
 
-  const totalAmount = totalPrice || basePrice + tax;
+  const basePrice = Number(rawBasePrice);
+  const tax = Number(rawTax);
+  const totalAmount = basePrice + tax;
   const senderId = user?._id || "guest";
+
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(amount);
 
   return (
     <>
@@ -63,34 +71,34 @@ const BookingConfirmed = () => {
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
         <h2 className="text-3xl font-bold text-green-600 mb-4">Booking Confirmed ✅</h2>
         <p className="text-lg text-gray-700">
-          Your stay at <span className="font-bold">{placeName}</span> is confirmed.
+          Your stay at <span className="font-bold">{destination}</span> is confirmed.
         </p>
 
         <div className="mt-3 p-6 bg-white shadow-md rounded-lg w-full max-w-lg">
           <h3 className="text-xl font-bold mb-3 text-blue-700">Guest Details</h3>
-          <p><b>Name:</b> {contactInfo?.name}</p>
-          <p><b>Email:</b> {contactInfo?.email}</p>
-          <p><b>Phone:</b> {contactInfo?.phone}</p>
+          <p><b>Name:</b> {FirstName} {LastName}</p>
+          <p><b>Email:</b> {EmailId}</p>
+          <p><b>Phone:</b> {PhoneNumber}</p>
 
           <h3 className="text-xl font-bold mt-4 mb-3 text-blue-700">Booking Details</h3>
-          <p><b>Check-in:</b> {new Date(checkInDate).toLocaleDateString()}</p>
-          <p><b>Check-out:</b> {new Date(checkOutDate).toLocaleDateString()}</p>
-          <p><b>Guests:</b> {numberOfGuests}</p>
-          <p><b>Room Type:</b> {roomType}</p>
+          <p><b>Check-in:</b> {new Date(checkIn).toLocaleDateString()}</p>
+          <p><b>Check-out:</b> {new Date(checkOut).toLocaleDateString()}</p>
+          <p><b>Guests:</b> {guests}</p>
+          <p><b>Rooms:</b> {rooms}</p>
 
           <h3 className="text-xl font-bold mt-4 mb-3 text-blue-700">Price Breakdown</h3>
           <div className="flex justify-between">
             <span>Base Price:</span>
-            <span className="font-semibold">₹ {basePrice}</span>
+            <span className="font-semibold">{formatCurrency(basePrice)}</span>
           </div>
           <div className="flex justify-between">
             <span>Hotel Taxes:</span>
-            <span className="font-semibold">₹ {tax}</span>
+            <span className="font-semibold">{formatCurrency(tax)}</span>
           </div>
           <hr className="my-3" />
           <div className="flex justify-between font-bold text-lg">
             <span>Total Amount:</span>
-            <span>₹ {totalAmount}</span>
+            <span>{formatCurrency(totalAmount)}</span>
           </div>
         </div>
 
@@ -138,10 +146,10 @@ const BookingConfirmed = () => {
                 </button>
               </div>
               <ChatComponent
-                bookingId={accommodationId}
+                bookingId={destination}
                 senderId={senderId}
                 receiverId="admin"
-                senderName={contactInfo?.name || "Guest"}
+                senderName={`${FirstName} ${LastName}`}
               />
             </div>
           )}
