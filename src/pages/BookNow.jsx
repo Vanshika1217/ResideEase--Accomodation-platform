@@ -32,71 +32,92 @@ const BookNow = () => {
   };
 
   const handleConfirmBooking = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const basePrice = placeDetails.price || 0;
-      const tax = (basePrice * 0.18).toFixed(2);
-      const totalPrice = (basePrice * 1.18).toFixed(2);
+  try {
+    const basePrice = placeDetails.price || 0;
+    const tax = (basePrice * 0.18).toFixed(2);
+    const totalPrice = (basePrice * 1.18).toFixed(2);
 
-      const bookingData = {
-        accommodationId: placeDetails.hotelId,
-        placeName: placeDetails.name || "MyHotel",
-        type: placeDetails.type || "Hotel",
-        checkInDate: formData.checkIn,
-        checkOutDate: formData.checkOut,
-        numberOfGuests: formData.guests,
-        roomType: formData.rooms === 1 ? "Single" : formData.rooms === 2 ? "Double" : "Suite",
-        totalPrice: parseFloat(totalPrice),
-        contactInfo: {
-          name: `${formData.FirstName} ${formData.LastName}`,
-          email: user.email,
-          phone: formData.PhoneNumber,
-        },
-      };
+    const accommodationRes = await fetch(
+      `https://backend-resideease.onrender.com/accommodations/hotel/${placeDetails.hotelId}`
+    );
 
-      const response = await fetch(`https://backend-resideease.onrender.com/booking/add`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookingData),
-      });
-
-      const data = await response.json();
-      console.log("Booking Successful:", data);
-
-      navigate("/payment", {
-        state: {
-          user: {
-            upiId: "yourupi@bank", // 🔁 Replace with real or dummy UPI ID
-            name: `${formData.FirstName} ${formData.LastName}`,
-          },
-          amount: totalPrice,
-          formData: {
-            ...formData,
-            EmailId: user.email,
-            destination: placeDetails.name || "MyHotel",
-            basePrice,
-            tax,
-            totalAmount: totalPrice,
-          },
-        },
-      });
-    } catch (error) {
-      console.error("Booking failed:", error);
+    if (!accommodationRes.ok) {
+      const errText = await accommodationRes.text();
+      throw new Error(`Accommodation fetch failed: ${errText}`);
     }
-  };
+
+    const accommodationData = await accommodationRes.json();
+    const hostId = accommodationData.owner;
+    const hostName = accommodationData.hostName || "Host";
+
+    const bookingData = {
+      accommodationId: placeDetails.hotelId,
+      placeName: placeDetails.hotelName || "MyHotel",
+      type: placeDetails.type || "Hotel",
+      checkInDate: formData.checkIn,
+      checkOutDate: formData.checkOut,
+      numberOfGuests: formData.guests,
+      roomType: formData.rooms === 1 ? "Single" : formData.rooms === 2 ? "Double" : "Suite",
+      totalPrice: parseFloat(totalPrice),
+      contactInfo: {
+        name: `${formData.FirstName} ${formData.LastName}`,
+        email: user.email,
+        phone: formData.PhoneNumber,
+      },
+    };
+
+    const response = await fetch(`https://backend-resideease.onrender.com/booking/add`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bookingData),
+    });
+
+    const data = await response.json();
+    const bookingId = data._id;
+    console.log("Booking Successful:", data);
+
+    // ✅ Navigate ONLY to payment and pass everything needed
+    navigate("/payment", {
+      state: {
+        user: {
+          upiId: "yourupi@bank",
+          name: `${formData.FirstName} ${formData.LastName}`,
+        },
+        amount: totalPrice,
+        formData: {
+          ...formData,
+          EmailId: user.email,
+          destination: placeDetails.hotelName || "MyHotel",
+          basePrice,
+          tax,
+          totalAmount: totalPrice,
+        },
+        bookingId,
+        hostId,
+        hostName,
+        userId: user._id,
+        userName: `${formData.FirstName} ${formData.LastName}`,
+      },
+    });
+
+  } catch (error) {
+    console.error("Booking failed:", error);
+  }
+};
 
   return (
     <>
       <Navbar />
       <div className="flex justify-center items-center min-h-screen bg-gray-100 p-8">
         <div className="w-full max-w-5xl bg-white shadow-xl rounded-3xl p-8 flex gap-8">
-          {/* Left Section */}
           <div className="w-2/3">
             <h2 className="text-2xl font-bold mb-6">Book Your Stay</h2>
-            <h3 className="text-lg font-semibold">Hotel: {placeDetails.name || "MyHotel"}</h3>
+            <h3 className="text-lg font-semibold">Hotel: {placeDetails.hotelName || "MyHotel"}</h3>
             <p className="text-gray-600">
-              Location: {placeDetails.location?.address}, {placeDetails.location?.city}, {placeDetails.location?.state}
+              Location: {placeDetails.location?.address}, {placeDetails.location?.city},{" "}
+              {placeDetails.location?.state}
             </p>
 
             <label className="block font-semibold mt-4">Title</label>
@@ -154,7 +175,6 @@ const BookNow = () => {
             </button>
           </div>
 
-          {/* Right Section */}
           <div className="w-1/3 bg-gray-50 p-6 rounded-2xl shadow-md">
             <img src={Array.isArray(placeDetails.img) ? placeDetails.img[0] : placeDetails.img} alt="Hotel" className="w-full h-48 object-cover rounded-lg mb-6" />
 

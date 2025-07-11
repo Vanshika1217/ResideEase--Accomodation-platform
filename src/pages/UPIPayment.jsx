@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import QRCode from "qrcode";
 import { FiCopy, FiCheck, FiExternalLink } from "react-icons/fi";
@@ -7,9 +7,20 @@ export default function UPIPayment() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { user, amount, formData } = location.state || {};
+  // Defensive extraction from state
+  const state = location.state || {};
+  const {
+    user,
+    amount,
+    formData,
+    bookingId,
+    hostId,
+    hostName,
+    userId,
+    userName,
+  } = state;
 
-  if (!user || !amount) {
+  if (!user || !amount || !formData) {
     return (
       <div className="text-red-500 text-center mt-10">
         Missing payment info. Please go back and try again.
@@ -23,7 +34,9 @@ export default function UPIPayment() {
   const currency = "INR";
 
   const upiUrl = useMemo(() => {
-    return `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&mc=&tid=${txnId}&tr=${txnId}&tn=${encodeURIComponent(
+    return `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
+      name
+    )}&mc=&tid=${txnId}&tr=${txnId}&tn=${encodeURIComponent(
       note
     )}&am=${amount}&cu=${currency}`;
   }, [upiId, name, txnId, amount]);
@@ -40,7 +53,16 @@ export default function UPIPayment() {
   }, [upiUrl]);
 
   const handlePaymentDone = () => {
-    navigate("/booking-confirmed", { state: formData });
+    navigate("/booking-confirmed", {
+      state: {
+        formData,
+        bookingId,
+        hostId,
+        hostName,
+        userId,
+        userName,
+      },
+    });
   };
 
   const copyToClipboard = () => {
@@ -66,7 +88,7 @@ export default function UPIPayment() {
           </div>
         </div>
 
-        {/* QR Code Section */}
+        {/* QR Code or Mobile Link */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex flex-col items-center">
             {isMobile ? (
@@ -107,7 +129,7 @@ export default function UPIPayment() {
           </div>
         </div>
 
-        {/* Payment Note */}
+        {/* Confirmation */}
         <div className="p-6">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-yellow-800 text-sm text-center">
@@ -123,7 +145,7 @@ export default function UPIPayment() {
           </button>
 
           <p className="mt-4 text-sm text-gray-600 text-center">
-            Having trouble?{' '}
+            Having trouble?{" "}
             <a href={upiUrl} className="text-blue-600 hover:underline">
               Try manual payment
             </a>
