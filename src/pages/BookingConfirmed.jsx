@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// src/pages/BookingConfirmed.jsx
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import BookingReceipt from "./BookingReceipt";
@@ -8,9 +9,23 @@ import { useAuth } from "../context/AuthContext";
 
 const BookingConfirmed = () => {
   const location = useLocation();
-  const { formData } = location.state || {};
   const { user } = useAuth();
-  const [showChat, setShowChat] = useState(false); // 🆕 State to toggle chat
+  const [showChat, setShowChat] = useState(false);
+  const [formData, setFormData] = useState(null);
+
+  // Load formData from location.state or localStorage
+  useEffect(() => {
+    const stateData = location.state?.formData;
+    if (stateData) {
+      setFormData(stateData);
+      localStorage.setItem("bookingData", JSON.stringify(stateData));
+    } else {
+      const storedData = localStorage.getItem("bookingData");
+      if (storedData) {
+        setFormData(JSON.parse(storedData));
+      }
+    }
+  }, [location.state]);
 
   if (!formData) {
     return (
@@ -97,7 +112,7 @@ const BookingConfirmed = () => {
             }
           </PDFDownloadLink>
 
-          {/* Chat Section */}
+          {/* Chat Section Toggle */}
           {!showChat && (
             <div className="flex-1 text-center">
               <button
@@ -111,9 +126,17 @@ const BookingConfirmed = () => {
 
           {showChat && (
             <div className="flex-1 bg-white p-4 shadow-lg rounded-lg">
-              <h3 className="text-xl font-bold text-blue-700 mb-3">
-                Chat with Host
-              </h3>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-xl font-bold text-blue-700">
+                  Chat with Host
+                </h3>
+                <button
+                  onClick={() => setShowChat(false)}
+                  className="text-red-600 hover:underline"
+                >
+                  Close ❌
+                </button>
+              </div>
               <ChatComponent
                 bookingId={accommodationId}
                 senderId={senderId}
