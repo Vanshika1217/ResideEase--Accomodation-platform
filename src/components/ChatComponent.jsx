@@ -26,6 +26,7 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
       try {
         const res = await axios.get(`https://backend-resideease.onrender.com/messages/${bookingId}`);
         setMessages(res.data);
+        console.log("📬 Initial messages:", res.data);
       } catch (err) {
         console.error("❌ Failed to fetch messages:", err);
       }
@@ -34,7 +35,7 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
     fetchMessages();
   }, [bookingId]);
 
-  // Join room and handle incoming messages
+  // Join room and listen for incoming messages
   useEffect(() => {
     socket.emit('join_room', roomId);
     console.log("🟢 Joined room:", roomId);
@@ -51,7 +52,7 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
     };
   }, [roomId]);
 
-  // Send message
+  // Send message handler
   const sendMessage = async () => {
     if (!content.trim()) return;
 
@@ -67,11 +68,7 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
 
     try {
       const saved = await axios.post("https://backend-resideease.onrender.com/messages", msg);
-
-      // Emit to room → all clients including sender will receive via socket
       socket.emit('send_message', saved.data);
-
-      // ❌ Do not append locally here — will be handled in receive_message
       setContent('');
     } catch (err) {
       console.error("❌ Failed to send message:", err);
@@ -82,14 +79,19 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
     <div>
       <h3 className="text-lg font-semibold mb-2 text-gray-800">Chat</h3>
 
-      <div className="bg-gray-100 rounded-lg p-3 mb-2 max-h-64 overflow-y-auto">
+      {/* 🔍 Debug: show raw message JSON */}
+      <pre className="text-xs text-gray-400 bg-white rounded p-2 mb-2">
+        {JSON.stringify(messages, null, 2)}
+      </pre>
+
+      <div className="bg-gray-100 rounded-lg p-3 mb-2 max-h-64 overflow-y-auto" style={{ minHeight: '100px' }}>
         {messages.length === 0 ? (
           <p className="text-gray-500">No messages yet.</p>
         ) : (
           messages.map((msg, i) => (
             <div
               key={i}
-              className={`mb-1 ${msg.senderId === senderId ? 'text-right' : 'text-left'}`}
+              className={`mb-1 ${msg.senderId?.toString() === senderId?.toString() ? 'text-right' : 'text-left'}`}
             >
               <strong>{msg.senderName}:</strong> {msg.content}
             </div>
