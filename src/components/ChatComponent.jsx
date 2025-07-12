@@ -8,12 +8,10 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
   const [messages, setMessages] = useState([]);
   const roomId = `${bookingId}`;
 
-  // ✅ Debugging logs
   useEffect(() => {
     console.log("📦 ChatComponent Props:", { bookingId, senderId, receiverId, senderName });
   }, []);
 
-  // ✅ Prevent rendering if essential props are missing
   if (!bookingId || !senderId || !receiverId) {
     return (
       <div className="text-red-600 font-semibold">
@@ -22,7 +20,7 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
     );
   }
 
-  // ✅ Fetch messages from backend
+  // Fetch initial messages
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -36,11 +34,13 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
     fetchMessages();
   }, [bookingId]);
 
-  // ✅ Handle real-time socket communication
+  // Join room and handle incoming messages
   useEffect(() => {
     socket.emit('join_room', roomId);
+    console.log("🟢 Joined room:", roomId);
 
     const handleReceive = (msg) => {
+      console.log("📥 Received message:", msg);
       setMessages((prev) => [...prev, msg]);
     };
 
@@ -51,12 +51,9 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
     };
   }, [roomId]);
 
-  // ✅ Send message handler
+  // Send message
   const sendMessage = async () => {
-    if (!content.trim() || !senderId || !receiverId || !bookingId) {
-      console.warn("❌ Missing sender/receiver/booking ID or empty message.");
-      return;
-    }
+    if (!content.trim()) return;
 
     const msg = {
       bookingId,
@@ -70,8 +67,11 @@ const ChatComponent = ({ bookingId, senderId, receiverId, senderName }) => {
 
     try {
       const saved = await axios.post("https://backend-resideease.onrender.com/messages", msg);
+
+      // Emit to room → all clients including sender will receive via socket
       socket.emit('send_message', saved.data);
-      setMessages((prev) => [...prev, saved.data]);
+
+      // ❌ Do not append locally here — will be handled in receive_message
       setContent('');
     } catch (err) {
       console.error("❌ Failed to send message:", err);
