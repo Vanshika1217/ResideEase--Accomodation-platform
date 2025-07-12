@@ -146,7 +146,7 @@ const BookingConfirmed = () => {
                 </button>
               </div>
               <ChatComponent
-                bookingId={destination}
+               bookingId={formData._id} 
                 senderId={senderId}
                 receiverId="admin"
                 senderName={`${FirstName} ${LastName}`}
